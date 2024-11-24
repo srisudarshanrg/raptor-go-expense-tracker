@@ -1,0 +1,3 @@
+drop_table("expenses")
+
+drop_foreign_key("expenses", "expenses_users_id_fk", {})

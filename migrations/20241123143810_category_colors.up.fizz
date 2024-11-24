@@ -1,0 +1,11 @@
+create_table("colors") {
+    t.Column("id", "integer", {primary: true})
+    t.Column("color", "string")
+    t.Column("category", "string")
+    t.Column("user_id", "integer", {})
+}
+
+add_foreign_key("colors", "user_id", {"users": ["id"]}, {
+    "on_delete": "cascade",
+    "on_update": "cascade",
+})

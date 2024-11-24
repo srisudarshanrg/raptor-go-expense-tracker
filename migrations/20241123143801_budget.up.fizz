@@ -1,0 +1,11 @@
+create_table("budget") {
+    t.Column("id", "integer", {primary: true})
+    t.Column("category", "string")
+    t.Column("amount", "integer")
+    t.Column("user_id", "integer", {})
+}
+
+add_foreign_key("budget", "user_id", {"users": ["id"]}, {
+    "on_delete": "cascade",
+    "on_update": "cascade",
+})

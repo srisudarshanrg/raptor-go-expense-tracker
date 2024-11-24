@@ -1,0 +1,4 @@
+drop_table("users")
+
+drop_index("users", "users_username_idx")
+drop_index("users", "users_email_idx")

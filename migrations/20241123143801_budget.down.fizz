@@ -1,0 +1,3 @@
+drop_table("budget")
+
+drop_foreign_key("budget", "budget_users_id_fk", {})
