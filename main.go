@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-chi/chi/v5"
 	"github.com/srisudarshanrg/go-expense-tracker/server/database"
 	"github.com/srisudarshanrg/go-expense-tracker/server/setup"
 )
@@ -28,15 +29,29 @@ func main() {
 
 	setup.DBAccess(db)
 
-	// handler calls
-	http.HandleFunc("/login", setup.Login)
-	http.HandleFunc("/register", setup.Register)
-	http.HandleFunc("/expenses", setup.Expenses)
-	http.HandleFunc("/tracker", setup.Tracker)
-	http.HandleFunc("/budget", setup.Budget)
-	http.HandleFunc("/profile", setup.Budget)
-	http.HandleFunc("/logout", setup.Logout)
+	// routes
+	server := http.Server{
+		Addr:    portNumber,
+		Handler: routes(),
+	}
 
 	log.Println("server running on port number", portNumber)
-	http.ListenAndServe(portNumber, nil)
+	server.ListenAndServe()
+}
+
+func routes() http.Handler {
+	mux := chi.NewRouter()
+
+	mux.Get("/login", setup.Login)
+	mux.Get("/register", setup.Register)
+	mux.Get("/expenses", setup.Expenses)
+	mux.Get("/tracker", setup.Tracker)
+	mux.Get("/budget", setup.Budget)
+	mux.Get("/profile", setup.Budget)
+	mux.Get("/logout", setup.Logout)
+
+	fileServer := http.FileServer(http.Dir("./static/"))
+	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
+
+	return mux
 }
