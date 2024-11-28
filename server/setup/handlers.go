@@ -13,12 +13,12 @@ var db *sql.DB
 var session *scs.SessionManager
 
 // DBAccess provides the handlers with access to the database
-func DBAccess(dbAccess *sql.DB) {
+func DBAccessHandlers(dbAccess *sql.DB) {
 	db = dbAccess
 }
 
 // SessionAccess provides the handlers with access to the sessions
-func SessionAccess(sessionAccess *scs.SessionManager) {
+func SessionAccessHandlers(sessionAccess *scs.SessionManager) {
 	session = sessionAccess
 }
 

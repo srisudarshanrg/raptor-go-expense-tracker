@@ -27,7 +27,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	setup.DBAccess(db)
+	setup.DBAccessHandlers(db)
+	setup.SessionAccessHandlers(session)
 
 	// routes
 	server := http.Server{
@@ -49,6 +50,8 @@ func routes() http.Handler {
 	mux.Get("/budget", setup.Budget)
 	mux.Get("/profile", setup.Budget)
 	mux.Get("/logout", setup.Logout)
+
+	mux.Post("/login", setup.LoginPost)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
