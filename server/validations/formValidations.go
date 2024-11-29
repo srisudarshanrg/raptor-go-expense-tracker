@@ -32,7 +32,7 @@ func MaxLength(toCheck string, requiredMaxLength int) {
 }
 
 // IsEmail checks if the email inputted by the user is valid or not
-func IsEmail(email string) {
+func ValidEmail(email string) {
 	if !govalidator.IsEmail(email) {
 		errorString := email + "is not a valid email address."
 		errorList = append(errorList, errorString)

@@ -8,6 +8,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/srisudarshanrg/go-expense-tracker/server/database"
+	"github.com/srisudarshanrg/go-expense-tracker/server/functions"
 	"github.com/srisudarshanrg/go-expense-tracker/server/setup"
 )
 
@@ -27,8 +28,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// database and access
 	setup.DBAccessHandlers(db)
 	setup.SessionAccessHandlers(session)
+	functions.DBAccessFunctions(db)
 
 	// routes
 	server := http.Server{
@@ -52,6 +55,7 @@ func routes() http.Handler {
 	mux.Get("/logout", setup.Logout)
 
 	mux.Post("/login", setup.LoginPost)
+	mux.Post("/register", setup.RegisterPost)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
