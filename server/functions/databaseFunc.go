@@ -23,14 +23,8 @@ func CreateNewUser(username string, email string, password string) (models.User,
 		return models.User{}, err
 	}
 
-	newUser := models.User{
-		Username: username,
-		Email:    email,
-		Password: hashPassword,
-	}
-
-	createUserQuery := `insert into users (username, email, password) values($1, $2, $3)`
-	_, err = db.Exec(createUserQuery, newUser.Username, newUser.Email, newUser.Password)
+	createUserQuery := `insert into users (username, email, password, created_at, updated_at) values($1, $2, $3, $4, $5)`
+	_, err = db.Exec(createUserQuery, username, email, hashPassword, time.Now(), time.Now())
 	if err != nil {
 		log.Println(err)
 		return models.User{}, err

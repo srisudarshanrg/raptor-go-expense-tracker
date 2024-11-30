@@ -53,8 +53,11 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 		RenderTemplate(w, r, "register.page.tmpl", models.TemplateData{
 			Data: errorList,
 		})
+		log.Println("validation problem")
 		return
 	}
+
+	log.Println("user created")
 
 	// create user
 	user, err := functions.CreateNewUser(username, email, password)
@@ -66,9 +69,5 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	// passing user to session
 	session.Put(r.Context(), "loggedUser", user)
 
-	RenderTemplate(w, r, "register.page.tmpl", models.TemplateData{
-		Info: "Your account has successfully been createdd.",
-	})
-
-	log.Println(username, email, password, passwordConfirm)
+	http.Redirect(w, r, "/expenses", http.StatusSeeOther)
 }

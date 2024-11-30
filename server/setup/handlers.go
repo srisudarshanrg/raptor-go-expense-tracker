@@ -44,6 +44,11 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
 }
 
 // Tracker is the handler for the register page
@@ -51,6 +56,11 @@ func Tracker(w http.ResponseWriter, r *http.Request) {
 	err := RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{})
 	if err != nil {
 		log.Println(err)
+	}
+
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }
 
@@ -60,6 +70,11 @@ func Budget(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
 }
 
 // Profile is the handler for the register page
@@ -68,9 +83,15 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
 }
 
 // Logout is the handler to logout of the web app
 func Logout(w http.ResponseWriter, r *http.Request) {
-
+	session.Remove(r.Context(), "loggedUser")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
