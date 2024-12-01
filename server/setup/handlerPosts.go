@@ -17,12 +17,29 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.Form.Get("username")
+	credential := r.Form.Get("credential")
 	password := r.Form.Get("password")
 
-	log.Println(username, password)
+	check, user, msg, err := functions.AuthenticateUser(credential, password)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if !check {
+		RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{
+			Error: msg,
+		})
+		return
+	}
 
-	err = RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{})
+	session.Put(r.Context(), "loggedUser", user)
+
+	log.Println("successfull")
+
+	err = RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
+		Info: msg,
+	})
+
 	if err != nil {
 		log.Println(err)
 	}
