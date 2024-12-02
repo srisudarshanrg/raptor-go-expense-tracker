@@ -24,6 +24,24 @@ func SessionAccessHandlers(sessionAccess *scs.SessionManager) {
 
 // Login is the handler for the login page
 func Login(w http.ResponseWriter, r *http.Request) {
+	status := r.URL.Query().Get("status")
+	loggedOut := r.URL.Query().Get("loggedOut")
+	if status != "" {
+		err := RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{
+			Error: status,
+		})
+		if err != nil {
+			log.Println(err)
+		}
+	} else if loggedOut != "" {
+		err := RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{
+			Info: loggedOut,
+		})
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	err := RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{})
 	if err != nil {
 		log.Println(err)
@@ -40,58 +58,73 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 // Expense is the handler for the register page
 func Expenses(w http.ResponseWriter, r *http.Request) {
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		notLogged := "You have to bee logged in first to access this page"
+		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	}
+
+	msg := r.URL.Query().Get("msg")
+	if msg != "" {
+		err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
+			Info: msg,
+		})
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{})
 	if err != nil {
 		log.Println(err)
-	}
-
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }
 
 // Tracker is the handler for the register page
 func Tracker(w http.ResponseWriter, r *http.Request) {
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		notLogged := "You have to bee logged in first to access this page"
+		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	}
+
 	err := RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{})
 	if err != nil {
 		log.Println(err)
-	}
-
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }
 
 // Budget is the handler for the register page
 func Budget(w http.ResponseWriter, r *http.Request) {
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		notLogged := "You have to bee logged in first to access this page"
+		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	}
+
 	err := RenderTemplate(w, r, "budget.page.tmpl", models.TemplateData{})
 	if err != nil {
 		log.Println(err)
-	}
-
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }
 
 // Profile is the handler for the register page
 func Profile(w http.ResponseWriter, r *http.Request) {
+	checkLogged := session.Get(r.Context(), "loggedUser")
+	if checkLogged == nil {
+		notLogged := "You have to bee logged in first to access this page"
+		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	}
+
 	err := RenderTemplate(w, r, "profile.page.tmpl", models.TemplateData{})
 	if err != nil {
 		log.Println(err)
-	}
-
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	}
 }
 
 // Logout is the handler to logout of the web app
 func Logout(w http.ResponseWriter, r *http.Request) {
 	session.Remove(r.Context(), "loggedUser")
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	loggedOutMsg := "You have been logged out successfully"
+	http.Redirect(w, r, "/login?loggedOut="+loggedOutMsg, http.StatusSeeOther)
 }

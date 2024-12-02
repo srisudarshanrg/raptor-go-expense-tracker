@@ -21,14 +21,11 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 	password := r.Form.Get("password")
 
 	check, user, msg, err := functions.AuthenticateUser(credential, password)
-	if err != nil {
-		log.Println(err)
-		return
-	}
 	if !check {
 		RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{
 			Error: msg,
 		})
+		log.Println(err)
 		return
 	}
 
@@ -36,13 +33,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("successfull")
 
-	err = RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-		Info: msg,
-	})
-
-	if err != nil {
-		log.Println(err)
-	}
+	http.Redirect(w, r, "/expenses?msg="+msg, http.StatusSeeOther)
 }
 
 func RegisterPost(w http.ResponseWriter, r *http.Request) {
