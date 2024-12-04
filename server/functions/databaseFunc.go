@@ -97,3 +97,15 @@ func AuthenticateUser(credential string, passwordInput string) (bool, models.Use
 
 	return true, user, "You have been successfully logged in!", nil
 }
+
+// AddExpense adds a new expense in the database
+func AddExpense(name string, category string, amount int, userID int) (string, error) {
+	addExpenseQuery := `insert into expenses(name, category, amount, user_id, created_at, updated_at) values($1, $2, $3, $4, $5, $6)`
+	_, err := db.Exec(addExpenseQuery, name, category, amount, userID, time.Now(), time.Now())
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	msg := "Expense" + name + "has been successfully added"
+	return msg, nil
+}

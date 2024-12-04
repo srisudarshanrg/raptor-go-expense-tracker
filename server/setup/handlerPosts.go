@@ -3,6 +3,7 @@ package setup
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/srisudarshanrg/go-expense-tracker/server/functions"
 	"github.com/srisudarshanrg/go-expense-tracker/server/models"
@@ -36,6 +37,7 @@ func LoginPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/expenses?msg="+msg, http.StatusSeeOther)
 }
 
+// RegisterPost is the handler for the post requests from the register page
 func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -78,4 +80,37 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	session.Put(r.Context(), "loggedUser", user)
 
 	http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+}
+
+// ExpensesPost is the handler for the post requests from the expenses page
+func ExpensesPost(w http.ResponseWriter, r *http.Request) {
+	userInterface := session.Get(r.Context(), "loggedUser")
+	if userInterface == nil {
+		log.Println("user not in session")
+		return
+	}
+	user, check := userInterface.(*models.User)
+	if !check {
+		log.Println("user from session could not be converted to models.User type")
+	}
+
+	if r.Method == "POST" {
+		formName := r.Form.Get("formName")
+		switch formName {
+		case "addExpense":
+			name := r.Form.Get("expenseName")
+			category := r.Form.Get("expenseCategory")
+			amount := r.Form.Get("expenseAmount")
+			amountConverted, _ := strconv.Atoi(amount)
+
+			msg, err := functions.AddExpense(name, category, amountConverted, user.ID)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
+				Info: msg,
+			})
+		}
+	}
 }

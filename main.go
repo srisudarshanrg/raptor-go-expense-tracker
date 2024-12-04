@@ -67,6 +67,7 @@ func routes() http.Handler {
 
 	mux.Post("/login", setup.LoginPost)
 	mux.Post("/register", setup.RegisterPost)
+	mux.Post("/expenses", setup.ExpensesPost)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
