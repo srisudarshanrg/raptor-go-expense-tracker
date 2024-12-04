@@ -72,6 +72,7 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
+		return
 	}
 
 	err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{})

@@ -62,7 +62,7 @@ func routes() http.Handler {
 	mux.Get("/expenses", setup.Expenses)
 	mux.Get("/tracker", setup.Tracker)
 	mux.Get("/budget", setup.Budget)
-	mux.Get("/profile", setup.Budget)
+	mux.Get("/profile", setup.Profile)
 	mux.Get("/logout", setup.Logout)
 
 	mux.Post("/login", setup.LoginPost)

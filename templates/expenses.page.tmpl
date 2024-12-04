@@ -1,8 +1,13 @@
 {{template "base" .}}
 
-{{if .Info}}
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        {{.Info}}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+{{define "title"}}
+    Expenses
+{{end}}
+
+{{define "css"}}
+    <link rel="stylesheet" href="/static/css/expenses.css">
+{{end}}
+
+{{define "content"}}
+    
 {{end}}

@@ -5,6 +5,15 @@
 {{define "css"}} <link rel="stylesheet" type="text/css" href="/static/css/login.css"> {{end}}
 
 {{define "content"}}
+    {{if .Data}}
+        {{$errors := .Data}}
+        {{range $error := $errors}}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{$error}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {{end}}
+    {{end}}
     <form method="post">
         <h3>Register</h3>
         <input type="text" name="username" placeholder="Username" class="form-control" required>        
