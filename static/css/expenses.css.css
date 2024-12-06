@@ -1,0 +1,15 @@
+.row {
+    width: 100%;
+    padding: 1% 1%;
+    font-family: "Work Sans", sans-serif;
+}
+
+.modal-content {
+    font-family: "Work Sans", sans-serif;
+    background-color: rgb(25, 25, 25);
+    color: #fff;
+}
+
+#addExpenseForm input, #addExpenseForm label {
+    margin-top: 2%;
+}

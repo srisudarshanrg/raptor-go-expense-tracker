@@ -5,9 +5,53 @@
 {{end}}
 
 {{define "css"}}
-    <link rel="stylesheet" href="/static/css/expenses.css">
+    <link rel="stylesheet" href="/static/css/expenses.css.css">
 {{end}}
 
 {{define "content"}}
-    
+    <!-- add expense modal -->
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">ADD EXPENSE</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: #fff;"></button>
+                </div>
+                <form method="post" id="addExpenseForm">
+                    <input type="hidden" name="formName" value="addExpenseForm">
+                    <div class="modal-body">
+                        <input type="text" name="expenseName" placeholder="Expense Name" class="form-control">
+                        <input type="text" name="expenseCategory" placeholder="Category" class="form-control">
+                        <input type="number" name="expenseAmount" placeholder="Amount" class="form-control">
+                        <label for="expenseColor">Choose color for category:</label>
+                        <input type="color" name="expenseColor" placeholder="Category Color" class="form-control">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-success">Add Expense</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7 col-md-7 col-sm-12 col-xs-12">
+            <div class="btn-group gap-1">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-plus"></i> Add Expense</button>
+                <button class="btn btn-primary"><i class="fa-solid fa-table"></i> Table View</button>
+            </div>
+            {{$expenses := .Data}}
+            {{range $expense := $expenses}}
+                <div class="expense-container">
+                    <small>{{$expense.Date}} | {{$expense.CreatedAt}}</small>
+                    <h4>{{$expense.Name}}</h4>
+                    <h3>{{$expense.Amount}} | {{$expense.Category}}</h3>
+                </div>
+            {{end}}
+        </div>
+        <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+
+        </div>
+    </div>
 {{end}}

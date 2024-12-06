@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/srisudarshanrg/go-expense-tracker/server/functions"
 	"github.com/srisudarshanrg/go-expense-tracker/server/models"
 )
 
@@ -33,6 +34,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
+		return
 	} else if loggedOut != "" {
 		err := RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{
 			Info: loggedOut,
@@ -40,6 +42,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
+		return
 	}
 
 	err := RenderTemplate(w, r, "login.page.tmpl", models.TemplateData{})
@@ -58,16 +61,24 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 // Expense is the handler for the register page
 func Expenses(w http.ResponseWriter, r *http.Request) {
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		notLogged := "You have to bee logged in first to access this page"
-		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		notLogged := "You have to be logged in first to access this page"
+		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
+		return
+	}
+
+	expenseList, err := functions.GetExpenses(user.ID)
+	if err != nil {
+		log.Println(err)
 	}
 
 	msg := r.URL.Query().Get("msg")
 	if msg != "" {
 		err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
 			Info: msg,
+			Data: expenseList,
 		})
 		if err != nil {
 			log.Println(err)
@@ -75,7 +86,9 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{})
+	err = RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
+		Data: expenseList,
+	})
 	if err != nil {
 		log.Println(err)
 	}
@@ -83,11 +96,14 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 
 // Tracker is the handler for the register page
 func Tracker(w http.ResponseWriter, r *http.Request) {
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		notLogged := "You have to bee logged in first to access this page"
-		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		notLogged := "You have to be logged in first to access this page"
+		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
+		return
 	}
+	log.Println(user)
 
 	err := RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{})
 	if err != nil {
@@ -97,11 +113,14 @@ func Tracker(w http.ResponseWriter, r *http.Request) {
 
 // Budget is the handler for the register page
 func Budget(w http.ResponseWriter, r *http.Request) {
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		notLogged := "You have to bee logged in first to access this page"
-		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		notLogged := "You have to be logged in first to access this page"
+		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
+		return
 	}
+	log.Println(user)
 
 	err := RenderTemplate(w, r, "budget.page.tmpl", models.TemplateData{})
 	if err != nil {
@@ -111,11 +130,14 @@ func Budget(w http.ResponseWriter, r *http.Request) {
 
 // Profile is the handler for the register page
 func Profile(w http.ResponseWriter, r *http.Request) {
-	checkLogged := session.Get(r.Context(), "loggedUser")
-	if checkLogged == nil {
-		notLogged := "You have to bee logged in first to access this page"
-		http.Redirect(w, r, "/login?status"+notLogged, http.StatusSeeOther)
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		notLogged := "You have to be logged in first to access this page"
+		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
+		return
 	}
+	log.Println(user)
 
 	err := RenderTemplate(w, r, "profile.page.tmpl", models.TemplateData{})
 	if err != nil {

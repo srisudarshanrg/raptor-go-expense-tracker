@@ -8,6 +8,7 @@ type User struct {
 	Username  string
 	Email     string
 	Password  string
+	JoinDate  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -19,6 +20,7 @@ type Expense struct {
 	Category  string
 	Amount    int
 	UserID    int
+	Date      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

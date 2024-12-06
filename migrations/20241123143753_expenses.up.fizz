@@ -3,6 +3,7 @@ create_table("expenses") {
     t.Column("name", "string")
     t.Column("category", "string")
     t.Column("amount", "integer")
+    t.Column("date", "string")
     t.Column("user_id", "integer", {})
 }
 

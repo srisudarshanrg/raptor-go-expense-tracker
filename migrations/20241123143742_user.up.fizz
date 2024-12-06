@@ -3,6 +3,7 @@ create_table("users") {
     t.Column("username", "string", {"size": 30})
     t.Column("email", "string")
     t.Column("password", "string")
+    t.Column("join_date", "string")
 }
 
 add_index("users", "username", {"unique": true})

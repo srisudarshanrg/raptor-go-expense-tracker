@@ -24,8 +24,10 @@ func CreateNewUser(username string, email string, password string) (models.User,
 		return models.User{}, err
 	}
 
-	createUserQuery := `insert into users (username, email, password, created_at, updated_at) values($1, $2, $3, $4, $5)`
-	_, err = db.Exec(createUserQuery, username, email, hashPassword, time.Now(), time.Now())
+	currentDate := time.Now().Format("02-01-2006")
+
+	createUserQuery := `insert into users (username, email, password, join_date, created_at, updated_at) values($1, $2, $3, $4, $5, $6)`
+	_, err = db.Exec(createUserQuery, username, email, hashPassword, currentDate, time.Now(), time.Now())
 	if err != nil {
 		log.Println(err)
 		return models.User{}, err
@@ -71,10 +73,10 @@ func AuthenticateUser(credential string, passwordInput string) (bool, models.Use
 	row := db.QueryRow(getUserQuery, credential)
 
 	var id int
-	var username, email, password string
+	var username, email, password, joinDate string
 	var createdAt, updatedAt time.Time
 
-	err = row.Scan(&id, &username, &email, &password, &createdAt, &updatedAt)
+	err = row.Scan(&id, &username, &email, &password, &joinDate, &createdAt, &updatedAt)
 	if err != nil {
 		log.Println(err)
 		return false, models.User{}, "", err
@@ -91,6 +93,7 @@ func AuthenticateUser(credential string, passwordInput string) (bool, models.Use
 		Username:  username,
 		Email:     email,
 		Password:  password,
+		JoinDate:  joinDate,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}
@@ -98,10 +101,49 @@ func AuthenticateUser(credential string, passwordInput string) (bool, models.Use
 	return true, user, "You have been successfully logged in!", nil
 }
 
+// GetExpenses gets all the user's expenses for a given user id
+func GetExpenses(userID int) ([]models.Expense, error) {
+	var expenseList []models.Expense
+
+	getExpensesQuery := `select * from expenses where user_id=$1`
+	rows, err := db.Query(getExpensesQuery, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		var id, userID, amount int
+		var name, category, date string
+		var createdAt, updatedAt time.Time
+
+		err = rows.Scan(&id, &name, &category, &amount, &date, &userID, &createdAt, &updatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		expense := models.Expense{
+			ID:        id,
+			Name:      name,
+			Category:  category,
+			Amount:    amount,
+			Date:      date,
+			UserID:    userID,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		}
+		expenseList = append(expenseList, expense)
+	}
+
+	return expenseList, nil
+}
+
 // AddExpense adds a new expense in the database
-func AddExpense(name string, category string, amount int, userID int) (string, error) {
-	addExpenseQuery := `insert into expenses(name, category, amount, user_id, created_at, updated_at) values($1, $2, $3, $4, $5, $6)`
-	_, err := db.Exec(addExpenseQuery, name, category, amount, userID, time.Now(), time.Now())
+func AddExpense(name string, category string, amount int, color string, userID int) (string, error) {
+	currentDate := time.Now().Format("02-01-2006")
+	addExpenseQuery := `insert into expenses(name, category, amount, date, user_id, created_at, updated_at) values($1, $2, $3, $4, $5, $6, $7)`
+	_, err := db.Exec(addExpenseQuery, name, category, amount, currentDate, userID, time.Now(), time.Now())
 	if err != nil {
 		log.Println(err)
 		return "", err
