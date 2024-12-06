@@ -130,8 +130,8 @@ func GetExpenses(userID int) ([]models.Expense, error) {
 			Amount:    amount,
 			Date:      date,
 			UserID:    userID,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
+			CreatedAt: createdAt.Format("15:04"),
+			UpdatedAt: updatedAt.Format("02-01-2006 15:04"),
 		}
 		expenseList = append(expenseList, expense)
 	}
@@ -139,15 +139,65 @@ func GetExpenses(userID int) ([]models.Expense, error) {
 	return expenseList, nil
 }
 
-// AddExpense adds a new expense in the database
-func AddExpense(name string, category string, amount int, color string, userID int) (string, error) {
+// GetExpenseCategories gets all the distinct expense categories along with their total expenditure and color
+func GetExpenseCategories(userID int) ([]models.ExpenseCategory, error) {
+	getDistinctCategories := `select distinct category from expenses where user_id=$1`
+	rows, err := db.Query(getDistinctCategories, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var expenseCategoryList []models.ExpenseCategory
+
+	for rows.Next() {
+		var category string
+		rows.Scan(&category)
+
+		getAllExpensesFromCategoryQuery := `select * from expenses where category=$1 and user_id=$2`
+		rows, err := db.Query(getAllExpensesFromCategoryQuery, category, userID)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		for rows.Next() {
+
+		}
+	}
+
+	return expenseCategoryList, nil
+}
+
+// AddExpense adds a new expense in the database and updates the category colors table
+func AddExpense(name string, category string, amount int, color string, userID int) error {
 	currentDate := time.Now().Format("02-01-2006")
 	addExpenseQuery := `insert into expenses(name, category, amount, date, user_id, created_at, updated_at) values($1, $2, $3, $4, $5, $6, $7)`
 	_, err := db.Exec(addExpenseQuery, name, category, amount, currentDate, userID, time.Now(), time.Now())
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return err
 	}
-	msg := "Expense" + name + "has been successfully added"
-	return msg, nil
+
+	searchCategoryColorQuery := `select * from colors where category=$1 and user_id=$2`
+	result, err := db.Exec(searchCategoryColorQuery, category, userID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		insertCategoryColorQuery := `insert into colors(color, category, user_id, created_at, updated_at) values($1, $2, $3, $4, $5)`
+		_, err = db.Exec(insertCategoryColorQuery, color, category, userID, time.Now(), time.Now())
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+
+	return nil
 }

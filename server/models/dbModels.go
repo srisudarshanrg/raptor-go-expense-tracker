@@ -21,8 +21,15 @@ type Expense struct {
 	Amount    int
 	UserID    int
 	Date      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt string
+	UpdatedAt string
+}
+
+// ExpenseCategory is the model object for distinct categories with total expenditure and color
+type ExpenseCategory struct {
+	Category         string
+	TotalExpenditure int
+	Color            string
 }
 
 // Budget is the model object for a budget from the database

@@ -86,32 +86,34 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 
 // ExpensesPost is the handler for the post requests from the expenses page
 func ExpensesPost(w http.ResponseWriter, r *http.Request) {
-	user, check := session.Get(r.Context(), "loggedUser").(*models.User)
-	if user == nil || !check {
-		log.Println("user not in session")
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		log.Println("user not in session", user, check)
 		return
 	}
 
-	if r.Method == "POST" {
-		formName := r.Form.Get("formName")
-		switch formName {
-		case "addExpenseForm":
-			name := r.Form.Get("expenseName")
-			category := r.Form.Get("expenseCategory")
-			amount := r.Form.Get("expenseAmount")
-			color := r.Form.Get("expenseColor")
-			amountConverted, _ := strconv.Atoi(amount)
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
 
-			msg, err := functions.AddExpense(name, category, amountConverted, color, user.ID)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-				Info: msg,
-			})
-		case "searchExpenseForm":
+	name := r.Form.Get("expenseName")
+	searchKey := r.Form.Get("searchExpenseKey")
 
+	if name != "" {
+		category := r.Form.Get("expenseCategory")
+		amount := r.Form.Get("expenseAmount")
+		color := r.Form.Get("expenseColor")
+		amountConverted, _ := strconv.Atoi(amount)
+
+		err := functions.AddExpense(name, category, amountConverted, color, user.ID)
+		if err != nil {
+			log.Println(err)
+			return
 		}
+		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+	} else if searchKey != "" {
+
 	}
 }

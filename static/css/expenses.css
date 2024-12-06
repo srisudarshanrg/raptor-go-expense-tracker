@@ -1,0 +1,29 @@
+.row {
+    width: 100%;
+    padding: 1% 1%;
+    font-family: "Work Sans", sans-serif;
+}
+
+.modal-content {
+    font-family: "Work Sans", sans-serif;
+    background-color: rgb(25, 25, 25);
+    color: #fff;
+}
+
+#addExpenseForm input, #addExpenseForm label {
+    margin-top: 2%;
+}
+
+.expense-container {
+    margin-top: 2%;
+    color: #fff;
+    background-image: linear-gradient(to bottom right, rgb(30, 107, 213), rgb(10, 10, 10));
+    padding: 0.5% 1%;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.expense-container:hover {
+    transform: scale(1.01);
+    transition: 0.3s;
+}
