@@ -2,6 +2,7 @@
     width: 100%;
     padding: 1% 1%;
     font-family: "Work Sans", sans-serif;
+    color: #fff;
 }
 
 .modal-content {
@@ -16,7 +17,6 @@
 
 .expense-container {
     margin-top: 2%;
-    color: #fff;
     background-image: linear-gradient(to bottom right, rgb(30, 107, 213), rgb(10, 10, 10));
     padding: 0.5% 1%;
     border-radius: 8px;
@@ -25,5 +25,21 @@
 
 .expense-container:hover {
     transform: scale(1.01);
+    transition: 0.3s;
+}
+
+.delete-expense-btn {
+    background-color: rgb(25, 25, 25);
+    border: 1px solid #ff1000;
+    color: #ff1000;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.delete-expense-btn:hover {
+    background-color: #ff1000;
+    border: 1px solid #ff1000;
+    color: #fff;
+    border-radius: 5px;
     transition: 0.3s;
 }

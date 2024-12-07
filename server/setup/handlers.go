@@ -2,6 +2,7 @@ package setup
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -74,11 +75,34 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
+	expenseCategoryList, expenseCategories, expenditureAmounts, colorList, err := functions.GetExpenseCategories(user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	expenseCategoriesNew, err := json.Marshal(expenseCategories)
+	if err != nil {
+		log.Println(err)
+	}
+	expenditureAmountsNew, err := json.Marshal(expenditureAmounts)
+	if err != nil {
+		log.Println(err)
+	}
+	colorListNew, err := json.Marshal(colorList)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// do the msg url checking after getting all the database data
 	msg := r.URL.Query().Get("msg")
 	if msg != "" {
 		err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-			Info: msg,
-			Data: expenseList,
+			Info:  msg,
+			Data:  expenseList,
+			Data1: expenseCategoryList,
+			Data2: string(expenseCategoriesNew),
+			Data3: string(expenditureAmountsNew),
+			Data4: string(colorListNew),
 		})
 		if err != nil {
 			log.Println(err)
@@ -87,7 +111,11 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-		Data: expenseList,
+		Data:  expenseList,
+		Data1: expenseCategoryList,
+		Data2: string(expenseCategoriesNew),
+		Data3: string(expenditureAmountsNew),
+		Data4: string(colorListNew),
 	})
 	if err != nil {
 		log.Println(err)

@@ -3,6 +3,7 @@ package functions
 import (
 	"database/sql"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/srisudarshanrg/go-expense-tracker/server/models"
@@ -140,39 +141,67 @@ func GetExpenses(userID int) ([]models.Expense, error) {
 }
 
 // GetExpenseCategories gets all the distinct expense categories along with their total expenditure and color
-func GetExpenseCategories(userID int) ([]models.ExpenseCategory, error) {
+func GetExpenseCategories(userID int) ([]models.ExpenseCategory, []string, []int, []string, error) {
 	getDistinctCategories := `select distinct category from expenses where user_id=$1`
 	rows, err := db.Query(getDistinctCategories, userID)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	var expenseCategoryList []models.ExpenseCategory
+	var expenseCategories []string
+	var expenditureAmounts []int
+	var colorList []string
 
 	for rows.Next() {
 		var category string
 		rows.Scan(&category)
 
-		getAllExpensesFromCategoryQuery := `select * from expenses where category=$1 and user_id=$2`
-		rows, err := db.Query(getAllExpensesFromCategoryQuery, category, userID)
+		expenseCategories = append(expenseCategories, category)
+
+		getAllExpensesFromCategoryQuery := `select amount from expenses where category=$1 and user_id=$2`
+		row, err := db.Query(getAllExpensesFromCategoryQuery, category, userID)
 		if err != nil {
 			log.Println(err)
-			return nil, err
+			return nil, nil, nil, nil, err
 		}
-		for rows.Next() {
 
+		getCategoryColorQuery := `select color from colors where category=$1 and user_id=$2`
+		colorRow := db.QueryRow(getCategoryColorQuery, category, userID)
+		var color string
+		colorRow.Scan(&color)
+		colorList = append(colorList, color)
+
+		totalExpenditure := 0
+		for row.Next() {
+			var amount int
+			err = row.Scan(&amount)
+			if err != nil {
+				log.Println(err)
+				return nil, nil, nil, nil, err
+			}
+			totalExpenditure += amount
 		}
+		expenditureAmounts = append(expenditureAmounts, totalExpenditure)
+
+		categoryExpense := models.ExpenseCategory{
+			Category:         category,
+			TotalExpenditure: totalExpenditure,
+			Color:            color,
+		}
+		expenseCategoryList = append(expenseCategoryList, categoryExpense)
 	}
 
-	return expenseCategoryList, nil
+	return expenseCategoryList, expenseCategories, expenditureAmounts, colorList, nil
 }
 
 // AddExpense adds a new expense in the database and updates the category colors table
 func AddExpense(name string, category string, amount int, color string, userID int) error {
+	categoryUpper := strings.ToUpper(category)
 	currentDate := time.Now().Format("02-01-2006")
 	addExpenseQuery := `insert into expenses(name, category, amount, date, user_id, created_at, updated_at) values($1, $2, $3, $4, $5, $6, $7)`
-	_, err := db.Exec(addExpenseQuery, name, category, amount, currentDate, userID, time.Now(), time.Now())
+	_, err := db.Exec(addExpenseQuery, name, categoryUpper, amount, currentDate, userID, time.Now(), time.Now())
 	if err != nil {
 		log.Println(err)
 		return err
@@ -192,12 +221,23 @@ func AddExpense(name string, category string, amount int, color string, userID i
 
 	if rowsAffected == 0 {
 		insertCategoryColorQuery := `insert into colors(color, category, user_id, created_at, updated_at) values($1, $2, $3, $4, $5)`
-		_, err = db.Exec(insertCategoryColorQuery, color, category, userID, time.Now(), time.Now())
+		_, err = db.Exec(insertCategoryColorQuery, color, categoryUpper, userID, time.Now(), time.Now())
 		if err != nil {
 			log.Println(err)
 			return err
 		}
 	}
 
+	return nil
+}
+
+// DeleteExpense deletes an expense in the database
+func DeleteExpense(id int) error {
+	deleteExpenseQuery := `delete from expenses where id=$1`
+	_, err := db.Exec(deleteExpenseQuery, id)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	return nil
 }

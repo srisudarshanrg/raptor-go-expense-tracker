@@ -100,6 +100,7 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 
 	name := r.Form.Get("expenseName")
 	searchKey := r.Form.Get("searchExpenseKey")
+	deleteExpense := r.Form.Get("deleteExpenseID")
 
 	if name != "" {
 		category := r.Form.Get("expenseCategory")
@@ -115,5 +116,15 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
 	} else if searchKey != "" {
 
+	} else if deleteExpense != "" {
+		id, err := strconv.Atoi(deleteExpense)
+		if err != nil {
+			log.Println(err)
+		}
+		err = functions.DeleteExpense(id)
+		if err != nil {
+			log.Println(err)
+		}
+		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
 	}
 }
