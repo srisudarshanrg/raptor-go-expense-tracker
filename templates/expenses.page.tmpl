@@ -34,6 +34,42 @@
         </div>
     </div>
 
+    <!-- search results modal -->
+    {{if .Data1}}
+        <div class="modal show fade d-block" id="searchResultsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">SEARCH RESULTS</h1>
+                        <a href="/expenses" class="btn-close" aria-label="Close" style="background-color: #fff;"></a>
+                    </div>                
+                    <div class="modal-body">
+                        {{$searchResults := .Data1}}
+                        {{range $result := $searchResults}}
+                            <div class="expense-container">
+                                <div style="display: flex; flex-direction: row; gap: 10px;">
+                                    <small>{{$result.Date}} <div class="vr"></div> {{$result.CreatedAt}}</small>
+                                    <small>
+                                        <form method="post">
+                                            <input type="hidden" name="deleteExpenseID" value="{{$result.ID}}">
+                                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </small>
+                                </div>
+                                <h4>{{$result.Name}}</h4>
+                                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$result.Amount}} | {{$result.Category}}</h3>
+                            </div>
+                        {{end}}
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-dark" href="/expenses">Close</a>
+                        <a class="btn btn-success" href="/expenses">OK</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{end}}
+
     <div class="row">
         <div class="col-lg-7 col-md-7 col-sm-12 col-xs-12">
             <h3>Recent Expenses</h3>
@@ -41,7 +77,7 @@
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="fa-solid fa-plus"></i> Add Expense</button>
                 <button class="btn btn-primary"><i class="fa-solid fa-table"></i> Table View</button>
             </div>
-            {{$expenses := .Data}}
+            {{$expenses := index .Data "expenseList"}}
             {{range $expense := $expenses}}
                 <div class="expense-container">
                     <div style="display: flex; flex-direction: row; gap: 10px;">
@@ -65,7 +101,7 @@
                     <td>Category</td>
                     <td>Expenditure</td>
                 </thead>
-                {{$categories := .Data1}}                
+                {{$categories := index .Data "expenseCategoryList"}}                
                 {{range $category := $categories}}
                     <tr>
                         <td>{{$category.Category}}</td>
@@ -80,9 +116,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- chart.js-->
     <script>
-        var labels = JSON.parse('{{.Data2}}')
-        var values = JSON.parse('{{.Data3}}')
-        var colors = JSON.parse('{{.Data4}}')
+        var labels = JSON.parse('{{index .Data "expenseCategories"}}')
+        var values = JSON.parse('{{index .Data "expenditureAmounts"}}')
+        var colors = JSON.parse('{{index .Data "colorList"}}')
         var ctx = document.getElementById("categoryShareChart").getContext("2d");
         var analysisChart = new Chart(ctx, {
             type: "pie",

@@ -231,6 +231,44 @@ func AddExpense(name string, category string, amount int, color string, userID i
 	return nil
 }
 
+// SearchExpense searches for a expense in the database based on a given key
+func SearchExpense(key string) ([]models.Expense, error) {
+	searchExpenseQuery := `select * from expenses where lower(name) like $1`
+	searchExpenseArg := "%" + key + "%"
+	rows, err := db.Query(searchExpenseQuery, searchExpenseArg)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var searchResults []models.Expense
+	for rows.Next() {
+		var name, category, date string
+		var id, userID, amount int
+		var createdAt, updatedAt time.Time
+
+		err = rows.Scan(&id, &name, &category, &amount, &date, &userID, &createdAt, &updatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		expense := models.Expense{
+			ID:        id,
+			Name:      name,
+			Category:  category,
+			Amount:    amount,
+			Date:      date,
+			UserID:    userID,
+			CreatedAt: createdAt.Format("02-01-2006 15:04"),
+			UpdatedAt: updatedAt.Format("02-01-2006 15:04"),
+		}
+		searchResults = append(searchResults, expense)
+	}
+
+	return searchResults, nil
+}
+
 // DeleteExpense deletes an expense in the database
 func DeleteExpense(id int) error {
 	deleteExpenseQuery := `delete from expenses where id=$1`

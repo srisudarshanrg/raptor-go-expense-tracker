@@ -3,6 +3,7 @@ package functions
 import (
 	"log"
 
+	"github.com/srisudarshanrg/go-expense-tracker/server/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,4 +21,14 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password string, passwordHash string) bool {
 	check := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	return check == nil
+}
+
+// ReverseSlice reverses a given slice of type models.Expense
+func ReverseSliceExpenseStruct(slice []models.Expense) []models.Expense {
+	for i, j := 0, len(slice)-1; i < j; {
+		slice[i], slice[j] = slice[j], slice[i]
+		i++
+		j--
+	}
+	return slice
 }

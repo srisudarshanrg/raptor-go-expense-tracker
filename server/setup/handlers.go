@@ -13,6 +13,7 @@ import (
 
 var db *sql.DB
 var session *scs.SessionManager
+var data = make(map[string]interface{})
 
 // DBAccess provides the handlers with access to the database
 func DBAccessHandlers(dbAccess *sql.DB) {
@@ -70,10 +71,12 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expenseList, err := functions.GetExpenses(user.ID)
+	expenseListRecieved, err := functions.GetExpenses(user.ID)
 	if err != nil {
 		log.Println(err)
 	}
+
+	expenseList := functions.ReverseSliceExpenseStruct(expenseListRecieved)
 
 	expenseCategoryList, expenseCategories, expenditureAmounts, colorList, err := functions.GetExpenseCategories(user.ID)
 	if err != nil {
@@ -93,16 +96,18 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	// do the msg url checking after getting all the database data
+	data["expenseList"] = expenseList
+	data["expenseCategoryList"] = expenseCategoryList
+	data["expenseCategories"] = string(expenseCategoriesNew)
+	data["expenditureAmounts"] = string(expenditureAmountsNew)
+	data["colorList"] = string(colorListNew)
+
+	// do the msg url checking after getting all the database data and doing all the logic
 	msg := r.URL.Query().Get("msg")
 	if msg != "" {
 		err := RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-			Info:  msg,
-			Data:  expenseList,
-			Data1: expenseCategoryList,
-			Data2: string(expenseCategoriesNew),
-			Data3: string(expenditureAmountsNew),
-			Data4: string(colorListNew),
+			Info: msg,
+			Data: data,
 		})
 		if err != nil {
 			log.Println(err)
@@ -111,11 +116,7 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-		Data:  expenseList,
-		Data1: expenseCategoryList,
-		Data2: string(expenseCategoriesNew),
-		Data3: string(expenditureAmountsNew),
-		Data4: string(colorListNew),
+		Data: data,
 	})
 	if err != nil {
 		log.Println(err)

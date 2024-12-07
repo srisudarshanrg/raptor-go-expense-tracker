@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/srisudarshanrg/go-expense-tracker/server/functions"
 	"github.com/srisudarshanrg/go-expense-tracker/server/models"
@@ -115,7 +116,16 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
 	} else if searchKey != "" {
+		searchResults, err := functions.SearchExpense(strings.ToLower(searchKey))
+		if err != nil {
+			log.Println(err)
+		}
 
+		data["searchResults"] = searchResults
+		RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
+			Data:  data,
+			Data1: searchResults,
+		})
 	} else if deleteExpense != "" {
 		id, err := strconv.Atoi(deleteExpense)
 		if err != nil {
