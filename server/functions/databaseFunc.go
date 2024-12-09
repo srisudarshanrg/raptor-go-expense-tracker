@@ -2,6 +2,7 @@ package functions
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"strings"
 	"time"
@@ -112,6 +113,7 @@ func GetExpenses(userID int) ([]models.Expense, error) {
 		log.Println(err)
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var id, userID, amount int
@@ -148,6 +150,7 @@ func GetExpenseCategories(userID int) ([]models.ExpenseCategory, []string, []int
 		log.Println(err)
 		return nil, nil, nil, nil, err
 	}
+	defer rows.Close()
 
 	var expenseCategoryList []models.ExpenseCategory
 	var expenseCategories []string
@@ -240,6 +243,7 @@ func SearchExpense(key string) ([]models.Expense, error) {
 		log.Println(err)
 		return nil, err
 	}
+	defer rows.Close()
 
 	var searchResults []models.Expense
 	for rows.Next() {
@@ -289,6 +293,7 @@ func GetExpensesByCategory(category string, userID int) ([]models.Expense, error
 		log.Println(err)
 		return nil, err
 	}
+	defer rows.Close()
 
 	var expensesList []models.Expense
 
@@ -312,6 +317,94 @@ func GetExpensesByCategory(category string, userID int) ([]models.Expense, error
 			UserID:    userID,
 			CreatedAt: createdAt.Format("15:04"),
 			UpdatedAt: updatedAt.Format("02-01-2006 15:04"),
+		}
+
+		expensesList = append(expensesList, expense)
+	}
+
+	return expensesList, nil
+}
+
+// GetTotalExpenditureByDate returns total expenditure of each day from past 10 days
+func GetTotalExpenditureByDate(userID int) (string, string, error) {
+	var labels []string
+	var values []int
+
+	for n := 10; n >= 0; n-- {
+		currentDate := time.Now()
+		dayBefore := currentDate.AddDate(0, 0, -n).Format("02-01-2006")
+		labels = append(labels, dayBefore)
+
+		getRowsByDateQuery := `select amount from expenses where date=$1 and user_id=$2`
+		rows, err := db.Query(getRowsByDateQuery, dayBefore, userID)
+		if err != nil {
+			log.Println(err)
+			return "", "", err
+		}
+		defer rows.Close()
+
+		var totalAmount int
+
+		for rows.Next() {
+			var amount int
+
+			err = rows.Scan(&amount)
+			if err != nil {
+				log.Println(err)
+				return "", "", err
+			}
+			totalAmount += amount
+		}
+		values = append(values, totalAmount)
+	}
+
+	newLabels, err := json.Marshal(labels)
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	newValues, err := json.Marshal(values)
+	if err != nil {
+		log.Println(err)
+		return "", "", err
+	}
+
+	return string(newLabels), string(newValues), nil
+}
+
+// SearchExpensesByDate gets all the expenses for a given date
+func SearchExpensesByDate(date string, userID int) ([]models.Expense, error) {
+	searchExpenseByDateQuery := `select * from expenses where date=$1 and user_id=$2`
+	rows, err := db.Query(searchExpenseByDateQuery, date, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var expensesList []models.Expense
+
+	for rows.Next() {
+		var id, amount, userID int
+		var name, category, date string
+		var createdAt, updatedAt time.Time
+
+		err = rows.Scan(&id, &name, &category, &amount, &date, &userID, &createdAt, &updatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		expense := models.Expense{
+			ID:        id,
+			Name:      name,
+			Category:  category,
+			Amount:    amount,
+			Date:      date,
+			UserID:    userID,
+			CreatedAt: createdAt.Format("02-01-2006"),
+			UpdatedAt: updatedAt.Format("02-01-2006"),
 		}
 
 		expensesList = append(expensesList, expense)

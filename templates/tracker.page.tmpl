@@ -10,7 +10,7 @@
 
 {{define "content"}}
     <!-- search results modal -->
-    {{if .PostData}}
+    {{if and .PostData (ne (index .PostData "searchResults") nil)}}
         <div class="modal show fade d-block" id="searchResultsModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -63,4 +63,143 @@
             {{end}}
         </div>
     </div>
+
+    <hr>
+
+    <div class="graphs">
+        <h1>GRAPHS AND CHARTS</h1>
+        <hr>
+        <div class="row">            
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 graph-container">
+                <div class="date-graph-container">
+                    <h3>Expenditure by Date</h3>
+                    <canvas id="dateGraph"></canvas>
+                    <form method="post" style="margin-top: 2%;"">
+                        <input type="date" name="date" placeholder="Search by date" class="form-control">
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1%;">Search</button>
+                    </form>
+                    {{if and .PostData (ne (index .PostData "dateSearchResults") nil)}}
+                        <hr>
+                        <h3>Search Results</h3>
+                        {{$dateSearchResults := index .PostData "dateSearchResults"}}
+                        <h3><a href="/tracker" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Back</a></h3>
+                        <h3>"{{index .PostData "dateSearchResultsLength"}}" results found</h3>
+                        {{range $result := $dateSearchResults}}                        
+                            <div class="expense-container" style="text-align: start;">                                
+                                <div style="display: flex; flex-direction: row; gap: 10px; background-color: inherit;">
+                                    <small>{{$result.Date}} | {{$result.CreatedAt}}</small>
+                                    <small>
+                                        <form method="post">
+                                            <input type="hidden" name="deleteExpenseID" value="{{$result.ID}}">
+                                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </small>
+                                </div>
+                                <h4>{{$result.Name}}</h4>
+                                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$result.Amount}} | {{$result.Category}}</h3>
+                            </div>
+                        {{end}}
+                    {{end}}
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 graph-container">
+                <div class="category-graph-container">
+                    <h3>Category Breakdown</h3>
+                    <canvas id="categoryGraph"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // expenditure by date graph
+        var labelsDate = JSON.parse('{{index .Data "labelsDate"}}')
+        var valuesDate = JSON.parse('{{index .Data "valuesDate"}}')
+
+        var ctx_date = document.getElementById("dateGraph").getContext("2d");
+        var dateGraph = new Chart(ctx_date, {
+            type: "line",
+            data: {
+                labels: labelsDate,
+                datasets: [
+                    {
+                        label: "Expense by Date",
+                        data: valuesDate,
+                        borderColor: "#fff",
+                        backgroundColor: "#0d6efd",
+                        color: "#fff",
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Date",
+                        },
+                        grid: {
+                            color: 'rgb(100, 100, 100)'  // Change the color of Y-axis gridlines here
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: "Total Expenditure",
+                        },
+                        grid: {
+                            color: 'rgb(100, 100, 100)'  // Change the color of Y-axis gridlines here
+                        },
+                    },
+                },
+            }
+        });
+
+        // expenditure by category graph
+        var labelsCategory = JSON.parse('{{index .Data "labelsCategory"}}')
+        var valuesCategory = JSON.parse('{{index .Data "valuesCategory"}}')
+
+        var ctx_category = document.getElementById("categoryGraph").getContext("2d");
+        var categoryGraph = new Chart(ctx_category, {
+            type: "bar",
+            data: {
+                labels: labelsCategory,
+                datasets: [
+                    {
+                        label: "Expense by Category",
+                        data: valuesCategory,
+                        backgroundColor: "#0d6efd",
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Category",
+                        },
+                        grid: {
+                            color: 'rgb(100, 100, 100)'  // Change the color of Y-axis gridlines here
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: "Total Expenditure",
+                        },
+                        grid: {
+                            color: 'rgb(100, 100, 100)'  // Change the color of Y-axis gridlines here
+                        }, 
+                    }
+                }
+            }
+        });
+    </script>
 {{end}}

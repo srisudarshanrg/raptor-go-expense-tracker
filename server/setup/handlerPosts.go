@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/srisudarshanrg/go-expense-tracker/server/functions"
 	"github.com/srisudarshanrg/go-expense-tracker/server/models"
@@ -166,11 +167,7 @@ func TrackerPost(w http.ResponseWriter, r *http.Request) {
 	category := r.Form.Get("category")
 	searchExpenseKey := r.Form.Get("searchExpenseKey")
 	deleteExpenseID := r.Form.Get("deleteExpenseID")
-
-	deleteExpenseIDConverted, err := strconv.Atoi(deleteExpenseID)
-	if err != nil {
-		log.Println(err)
-	}
+	date := r.Form.Get("date")
 
 	if category != "" {
 		categoryExpensesList, err := functions.GetExpensesByCategory(category, user.ID)
@@ -195,11 +192,34 @@ func TrackerPost(w http.ResponseWriter, r *http.Request) {
 			PostData: postData,
 		})
 	} else if deleteExpenseID != "" {
+		deleteExpenseIDConverted, err := strconv.Atoi(deleteExpenseID)
+		if err != nil {
+			log.Println(err)
+		}
 		err = functions.DeleteExpense(deleteExpenseIDConverted)
 		if err != nil {
 			log.Println(err)
 		}
 		http.Redirect(w, r, "/tracker", http.StatusSeeOther)
+	} else if date != "" {
+		dateTimeConverted, err := time.Parse("2006-01-02", date)
+		if err != nil {
+			log.Println(err)
+		}
+
+		dateConvertedLayout := dateTimeConverted.Format("02-01-2006")
+		dateSearchResults, err := functions.SearchExpensesByDate(dateConvertedLayout, user.ID)
+		if err != nil {
+			log.Println(err)
+		}
+
+		newPostData := map[string]interface{}{}
+		newPostData["dateSearchResults"] = dateSearchResults
+		newPostData["dateSearchResultsLength"] = len(dateSearchResults)
+		RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
+			Data:     data,
+			PostData: newPostData,
+		})
 	}
 }
 

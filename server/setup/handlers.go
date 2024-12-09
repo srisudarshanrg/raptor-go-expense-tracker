@@ -200,12 +200,30 @@ func Tracker(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expenseCategories, _, _, _, err := functions.GetExpenseCategories(user.ID)
+	expenseCategories, labelsCategory, valuesCategory, _, err := functions.GetExpenseCategories(user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	labelsDate, valuesDate, err := functions.GetTotalExpenditureByDate(user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	labelsCategoryNew, err := json.Marshal(labelsCategory)
+	if err != nil {
+		log.Println(err)
+	}
+	valuesCategoryNew, err := json.Marshal(valuesCategory)
 	if err != nil {
 		log.Println(err)
 	}
 
 	data["expenseCategoryList"] = expenseCategories
+	data["labelsDate"] = labelsDate
+	data["valuesDate"] = valuesDate
+	data["labelsCategory"] = string(labelsCategoryNew)
+	data["valuesCategory"] = string(valuesCategoryNew)
 
 	err = RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
 		Data: data,
@@ -280,7 +298,7 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 
 // Logout is the handler to logout of the web app
 func Logout(w http.ResponseWriter, r *http.Request) {
-	session.Remove(r.Context(), "loggedUser")
+	session.Destroy(r.Context())
 	loggedOutMsg := "You have been logged out successfully"
 	http.Redirect(w, r, "/login?loggedOut="+loggedOutMsg, http.StatusSeeOther)
 	log.Println("logged out")
