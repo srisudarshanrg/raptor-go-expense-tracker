@@ -279,3 +279,43 @@ func DeleteExpense(id int) error {
 	}
 	return nil
 }
+
+// GetExpenseByCategory gets all the expenses of a given category
+func GetExpensesByCategory(category string, userID int) ([]models.Expense, error) {
+	categoryConverted := strings.ToLower(category)
+	getExpensesByCategoryQuery := `select * from expenses where lower(category)=$1 and user_id=$2`
+	rows, err := db.Query(getExpensesByCategoryQuery, categoryConverted, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var expensesList []models.Expense
+
+	for rows.Next() {
+		var id, amount, userID int
+		var name, category, date string
+		var createdAt, updatedAt time.Time
+
+		err = rows.Scan(&id, &name, &category, &amount, &date, &userID, &createdAt, &updatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		expense := models.Expense{
+			ID:        id,
+			Name:      name,
+			Category:  category,
+			Amount:    amount,
+			Date:      date,
+			UserID:    userID,
+			CreatedAt: createdAt.Format("15:04"),
+			UpdatedAt: updatedAt.Format("02-01-2006 15:04"),
+		}
+
+		expensesList = append(expensesList, expense)
+	}
+
+	return expensesList, nil
+}

@@ -11,6 +11,8 @@ import (
 	"github.com/srisudarshanrg/go-expense-tracker/server/validations"
 )
 
+var postData = map[string]interface{}{}
+
 // LoginPost is the handler for the post requests from the login page
 func LoginPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -124,7 +126,6 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		postData := map[string]interface{}{}
 		postData["searchResults"] = searchResults
 		postData["searchResultsLength"] = len(searchResults)
 
@@ -146,4 +147,81 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 
 	session.Remove(r.Context(), "link")
 	session.Remove(r.Context(), "linkFilePath")
+}
+
+// TrackerPost is the handler for the post requests from the tracker page
+func TrackerPost(w http.ResponseWriter, r *http.Request) {
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		log.Println("user not in session", user, check)
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
+
+	category := r.Form.Get("category")
+	searchExpenseKey := r.Form.Get("searchExpenseKey")
+	deleteExpenseID := r.Form.Get("deleteExpenseID")
+
+	deleteExpenseIDConverted, err := strconv.Atoi(deleteExpenseID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if category != "" {
+		categoryExpensesList, err := functions.GetExpensesByCategory(category, user.ID)
+		if err != nil {
+			log.Println(err)
+		}
+		session.Put(r.Context(), "categoryExpensesList", categoryExpensesList)
+		session.Put(r.Context(), "categoryName", category)
+
+		http.Redirect(w, r, "/tracker-category", http.StatusSeeOther)
+	} else if searchExpenseKey != "" {
+		searchResults, err := functions.SearchExpense(searchExpenseKey)
+		if err != nil {
+			log.Println(err)
+		}
+
+		postData["searchResults"] = searchResults
+		postData["searchResultsLength"] = len(searchResults)
+
+		RenderTemplate(w, r, "/tracker.page.tmpl", models.TemplateData{
+			Data:     data,
+			PostData: postData,
+		})
+	} else if deleteExpenseID != "" {
+		err = functions.DeleteExpense(deleteExpenseIDConverted)
+		if err != nil {
+			log.Println(err)
+		}
+		http.Redirect(w, r, "/tracker", http.StatusSeeOther)
+	}
+}
+
+// TrackerCategoryPost is the handler for the post requests from the tracker category page
+func TrackerCategoryPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
+
+	deleteExpenseID := r.Form.Get("deleteExpenseID")
+
+	deleteExpenseIDConverted, err := strconv.Atoi(deleteExpenseID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if deleteExpenseID != "" {
+		err = functions.DeleteExpense(deleteExpenseIDConverted)
+		if err != nil {
+			log.Println(err)
+		}
+		http.Redirect(w, r, "/tracker-category", http.StatusSeeOther)
+	}
 }

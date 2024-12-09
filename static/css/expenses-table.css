@@ -1,5 +1,6 @@
 body {
     color: #fff;
+    font-family: "Work Sans", sans-serif;
 }
 
 .row {
@@ -9,7 +10,7 @@ body {
 
 .modal-content {
     font-family: "Work Sans", sans-serif;
-    background-color: rgb(25, 25, 25);
+    background-color: rgb(30, 30, 30);
     color: #fff;
 }
 

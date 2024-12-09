@@ -199,12 +199,48 @@ func Tracker(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
 		return
 	}
-	log.Println(user)
 
-	err := RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{})
+	expenseCategories, _, _, _, err := functions.GetExpenseCategories(user.ID)
 	if err != nil {
 		log.Println(err)
 	}
+
+	data["expenseCategoryList"] = expenseCategories
+
+	err = RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
+		Data: data,
+	})
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func TrackerCategory(w http.ResponseWriter, r *http.Request) {
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		notLogged := "You have to be logged in first to access this page"
+		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
+		return
+	}
+	log.Println(user)
+
+	categoryExpensesListInterface := session.Get(r.Context(), "categoryExpensesList")
+	categoryNameInterface := session.Get(r.Context(), "categoryName")
+
+	categoryExpensesList, checkCategoryExpensesList := categoryExpensesListInterface.([]models.Expense)
+	categoryName, checkCategoryName := categoryNameInterface.(string)
+	if !checkCategoryExpensesList || !checkCategoryName {
+		http.Redirect(w, r, "tracker.page.tmpl", http.StatusSeeOther)
+		return
+	}
+
+	data["categoryExpensesList"] = categoryExpensesList
+	data["categoryName"] = categoryName
+
+	RenderTemplate(w, r, "tracker-category.page.tmpl", models.TemplateData{
+		Data: data,
+	})
 }
 
 // Budget is the handler for the register page
@@ -246,4 +282,5 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	session.Remove(r.Context(), "loggedUser")
 	loggedOutMsg := "You have been logged out successfully"
 	http.Redirect(w, r, "/login?loggedOut="+loggedOutMsg, http.StatusSeeOther)
+	log.Println("logged out")
 }

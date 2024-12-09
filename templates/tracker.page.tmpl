@@ -9,5 +9,58 @@
 {{end}}
 
 {{define "content"}}
-    
+    <!-- search results modal -->
+    {{if .PostData}}
+        <div class="modal show fade d-block" id="searchResultsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">SEARCH RESULTS</h1>
+                        <a href="/tracker" class="btn-close" aria-label="Close" style="background-color: #fff;"></a>
+                    </div>                
+                    <div class="modal-body">
+                        <h5>"{{index .PostData "searchResultsLength"}}" Results Found</h5>
+                        {{$searchResults := index .PostData "searchResults"}}
+                        {{range $result := $searchResults}}
+                            <div class="expense-container">
+                                <div style="display: flex; flex-direction: row; gap: 10px;">
+                                    <small>{{$result.Date}} | {{$result.CreatedAt}}</small>
+                                    <small>
+                                        <form method="post">
+                                            <input type="hidden" name="deleteExpenseID" value="{{$result.ID}}">
+                                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </small>
+                                </div>
+                                <h4>{{$result.Name}}</h4>
+                                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$result.Amount}} | {{$result.Category}}</h3>
+                            </div>
+                        {{end}}
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-dark" href="/tracker">Close</a>
+                        <a class="btn btn-success" href="/tracker">OK</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{end}}
+
+    <div class="categories">
+        <h1>CATEGORIES</h1>
+        <hr>
+        <div class="category-rows">
+            {{$categories := index .Data "expenseCategoryList"}}
+            {{range $category := $categories}}
+                <form method="post">
+                    <input type="hidden" name="category" value="{{$category.Category}}">
+                    <button type="submit">
+                        <div class="category">
+                            <h1>{{$category.Category}}</h1>
+                        </div>
+                    </button>
+                </form>
+            {{end}}
+        </div>
+    </div>
 {{end}}

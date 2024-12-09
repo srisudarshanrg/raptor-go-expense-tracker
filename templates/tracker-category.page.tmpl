@@ -1,0 +1,32 @@
+{{template "base" .}}
+
+{{define "title"}}
+    {{index .Data "categoryName"}}
+{{end}}
+
+{{define "css"}}
+    <link rel="stylesheet" href="/static/css/tracker-category.css">
+{{end}}
+
+{{define "content"}}
+    <h1>{{index .Data "categoryName"}} <a href="/tracker" class="btn btn-primary" style="margin-bottom: 0.5%;"><i class="fa-solid fa-arrow-left"></i> Back</a></h1>
+    <hr>
+    <div class="expenses">
+        {{$expenses := index .Data "categoryExpensesList"}}
+        {{range $expense := $expenses}}
+            <div class="expense-container">
+                <div style="display: flex; flex-direction: row; gap: 10px;">
+                    <small>{{$expense.Date}} | {{$expense.CreatedAt}}</small>
+                    <small>
+                        <form method="post">
+                            <input type="hidden" name="deleteExpenseID" value="{{$expense.ID}}">
+                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
+                        </form>
+                    </small>
+                </div>
+                <h4>{{$expense.Name}}</h4>
+                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$expense.Amount}} | {{$expense.Category}}</h3>
+            </div>
+        {{end}}
+    </div>
+{{end}}

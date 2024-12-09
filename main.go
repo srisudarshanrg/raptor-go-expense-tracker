@@ -21,6 +21,7 @@ var session *scs.SessionManager
 
 func main() {
 	gob.Register(models.User{})
+	gob.Register([]models.Expense{})
 
 	// session
 	session = scs.New()
@@ -62,6 +63,7 @@ func routes() http.Handler {
 	mux.Get("/expenses", setup.Expenses)
 	mux.Get("/expenses-table", setup.ExpensesTable)
 	mux.Get("/tracker", setup.Tracker)
+	mux.Get("/tracker-category", setup.TrackerCategory)
 	mux.Get("/budget", setup.Budget)
 	mux.Get("/profile", setup.Profile)
 	mux.Get("/logout", setup.Logout)
@@ -70,6 +72,8 @@ func routes() http.Handler {
 	mux.Post("/register", setup.RegisterPost)
 	mux.Post("/expenses", setup.ExpensesPost)
 	mux.Post("/expenses-table", setup.ExpensesPost)
+	mux.Post("/tracker", setup.TrackerPost)
+	mux.Post("/tracker-category", setup.TrackerCategoryPost)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
