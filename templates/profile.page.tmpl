@@ -5,9 +5,26 @@
 {{end}}
 
 {{define "css"}}
-    <link rel="stylesheet" href="/static/css/profile.css">
+    <link rel="stylesheet" href="/static/css/profile.css.css">
 {{end}}
 
 {{define "content"}}
-    
+    <h1 style="margin-top: 1%;">User Stats</h1>
+    <hr>
+    <div class="card-group">
+        <div class="card">
+            <h6>Username</h6>
+            <h2>{{.Data.Username}}</h2>
+        </div>
+
+        <div class="card">
+            <h6>Email</h6>
+            <h2>{{.Data.Email}}</h2>
+        </div>
+
+        <div class="card">
+            <h6>Join Date</h6>
+            <h2>{{.Data.JoinDate}}</h2>
+        </div>
+    </div>
 {{end}}

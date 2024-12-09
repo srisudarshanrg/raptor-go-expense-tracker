@@ -84,7 +84,7 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	// passing user to session
 	session.Put(r.Context(), "loggedUser", user)
 
-	http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 // ExpensesPost is the handler for the post requests from the expenses page

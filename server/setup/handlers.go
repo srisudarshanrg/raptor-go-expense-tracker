@@ -269,9 +269,10 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
 		return
 	}
-	log.Println(user)
 
-	err := RenderTemplate(w, r, "profile.page.tmpl", models.TemplateData{})
+	err := RenderTemplate(w, r, "profile.page.tmpl", models.TemplateData{
+		Data: user,
+	})
 	if err != nil {
 		log.Println(err)
 	}
