@@ -60,6 +60,7 @@ func routes() http.Handler {
 	mux.Get("/login", setup.Login)
 	mux.Get("/register", setup.Register)
 	mux.Get("/expenses", setup.Expenses)
+	mux.Get("/expenses-table", setup.ExpensesTable)
 	mux.Get("/tracker", setup.Tracker)
 	mux.Get("/budget", setup.Budget)
 	mux.Get("/profile", setup.Profile)
@@ -68,6 +69,7 @@ func routes() http.Handler {
 	mux.Post("/login", setup.LoginPost)
 	mux.Post("/register", setup.RegisterPost)
 	mux.Post("/expenses", setup.ExpensesPost)
+	mux.Post("/expenses-table", setup.ExpensesPost)
 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))

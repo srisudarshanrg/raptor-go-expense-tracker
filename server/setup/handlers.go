@@ -71,6 +71,9 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session.Put(r.Context(), "link", "expenses")
+	session.Put(r.Context(), "linkFilePath", "expenses.page.tmpl")
+
 	expenseListRecieved, err := functions.GetExpenses(user.ID)
 	if err != nil {
 		log.Println(err)
@@ -116,6 +119,70 @@ func Expenses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
+		Data: data,
+	})
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func ExpensesTable(w http.ResponseWriter, r *http.Request) {
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		notLogged := "You have to be logged in first to access this page"
+		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
+		return
+	}
+
+	session.Put(r.Context(), "link", "expenses-table")
+	session.Put(r.Context(), "linkFilePath", "expenses-table.page.tmpl")
+
+	expenseListRecieved, err := functions.GetExpenses(user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	expenseList := functions.ReverseSliceExpenseStruct(expenseListRecieved)
+
+	expenseCategoryList, expenseCategories, expenditureAmounts, colorList, err := functions.GetExpenseCategories(user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	expenseCategoriesNew, err := json.Marshal(expenseCategories)
+	if err != nil {
+		log.Println(err)
+	}
+	expenditureAmountsNew, err := json.Marshal(expenditureAmounts)
+	if err != nil {
+		log.Println(err)
+	}
+	colorListNew, err := json.Marshal(colorList)
+	if err != nil {
+		log.Println(err)
+	}
+
+	data["expenseList"] = expenseList
+	data["expenseCategoryList"] = expenseCategoryList
+	data["expenseCategories"] = string(expenseCategoriesNew)
+	data["expenditureAmounts"] = string(expenditureAmountsNew)
+	data["colorList"] = string(colorListNew)
+
+	// do the msg url checking after getting all the database data and doing all the logic
+	msg := r.URL.Query().Get("msg")
+	if msg != "" {
+		err := RenderTemplate(w, r, "expenses-table.page.tmpl", models.TemplateData{
+			Info: msg,
+			Data: data,
+		})
+		if err != nil {
+			log.Println(err)
+		}
+		return
+	}
+
+	err = RenderTemplate(w, r, "expenses-table.page.tmpl", models.TemplateData{
 		Data: data,
 	})
 	if err != nil {

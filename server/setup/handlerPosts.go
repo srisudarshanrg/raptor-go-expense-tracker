@@ -94,6 +94,9 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	link := session.Get(r.Context(), "link").(string)
+	linkFilePath := session.Get(r.Context(), "linkFilePath").(string)
+
 	err := r.ParseForm()
 	if err != nil {
 		log.Println(err)
@@ -114,17 +117,20 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+		http.Redirect(w, r, link, http.StatusSeeOther)
 	} else if searchKey != "" {
 		searchResults, err := functions.SearchExpense(strings.ToLower(searchKey))
 		if err != nil {
 			log.Println(err)
 		}
 
-		data["searchResults"] = searchResults
-		RenderTemplate(w, r, "expenses.page.tmpl", models.TemplateData{
-			Data:  data,
-			Data1: searchResults,
+		postData := map[string]interface{}{}
+		postData["searchResults"] = searchResults
+		postData["searchResultsLength"] = len(searchResults)
+
+		RenderTemplate(w, r, linkFilePath, models.TemplateData{
+			Data:     data,
+			PostData: postData,
 		})
 	} else if deleteExpense != "" {
 		id, err := strconv.Atoi(deleteExpense)
@@ -135,6 +141,9 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		http.Redirect(w, r, "/expenses", http.StatusSeeOther)
+		http.Redirect(w, r, link, http.StatusSeeOther)
 	}
+
+	session.Remove(r.Context(), "link")
+	session.Remove(r.Context(), "linkFilePath")
 }
