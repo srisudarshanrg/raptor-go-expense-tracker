@@ -270,9 +270,17 @@ func Budget(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login?status="+notLogged, http.StatusSeeOther)
 		return
 	}
-	log.Println(user)
 
-	err := RenderTemplate(w, r, "budget.page.tmpl", models.TemplateData{})
+	budgetList, err := functions.GetBudgets(user.ID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	data["budgetList"] = budgetList
+
+	err = RenderTemplate(w, r, "budget.page.tmpl", models.TemplateData{
+		Data: data,
+	})
 	if err != nil {
 		log.Println(err)
 	}

@@ -36,7 +36,7 @@ type ExpenseCategory struct {
 type Budget struct {
 	ID        int
 	Category  string
-	Amount    string
+	Amount    int
 	UserID    int
 	CreatedAt time.Time
 	UpdatedAt time.Time

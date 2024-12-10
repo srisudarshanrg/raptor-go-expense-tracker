@@ -235,10 +235,10 @@ func AddExpense(name string, category string, amount int, color string, userID i
 }
 
 // SearchExpense searches for a expense in the database based on a given key
-func SearchExpense(key string) ([]models.Expense, error) {
-	searchExpenseQuery := `select * from expenses where lower(name) like $1`
+func SearchExpense(key string, userID int) ([]models.Expense, error) {
+	searchExpenseQuery := `select * from expenses where lower(name) like $1 and user_id=$2`
 	searchExpenseArg := "%" + key + "%"
-	rows, err := db.Query(searchExpenseQuery, searchExpenseArg)
+	rows, err := db.Query(searchExpenseQuery, searchExpenseArg, userID)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -411,4 +411,79 @@ func SearchExpensesByDate(date string, userID int) ([]models.Expense, error) {
 	}
 
 	return expensesList, nil
+}
+
+func SearchExpensesByDateRange(startDate, endDate time.Time, userID int) ([]models.Expense, error) {
+	searchExpensesByDateRangeQuery := `select * from expenses where created_at>=$1 and created_at<=$2 and user_id=$3`
+	rows, err := db.Query(searchExpensesByDateRangeQuery, startDate, endDate, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var searchResults []models.Expense
+	for rows.Next() {
+		var id, userID, amount int
+		var name, category, date string
+		var createdAt, updatedAt time.Time
+
+		err = rows.Scan(&id, &name, &category, &amount, &date, &userID, &createdAt, &updatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		expense := models.Expense{
+			ID:        id,
+			Name:      name,
+			Category:  category,
+			Amount:    amount,
+			Date:      date,
+			UserID:    userID,
+			CreatedAt: createdAt.Format("02-01-2006"),
+			UpdatedAt: updatedAt.Format("02-01-2006"),
+		}
+
+		searchResults = append(searchResults, expense)
+	}
+
+	return searchResults, nil
+}
+
+// GetBudgets gets all the budgets defined by the user from the database
+func GetBudgets(userID int) ([]models.Budget, error) {
+	getBudgetQuery := `select * from budget where user_id=$1`
+	rows, err := db.Query(getBudgetQuery, userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var budgetList []models.Budget
+	for rows.Next() {
+		var id, amount, userID int
+		var category string
+		var createdAt, updatedAt time.Time
+
+		err = rows.Scan(&id, &category, &amount, &userID, &createdAt, &updatedAt)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		budget := models.Budget{
+			ID:        id,
+			Category:  category,
+			Amount:    amount,
+			UserID:    userID,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		}
+
+		budgetList = append(budgetList, budget)
+	}
+
+	return budgetList, nil
 }

@@ -5,10 +5,17 @@
 {{end}}
 
 {{define "css"}}
-    <link rel="stylesheet" href="/static/css/tracker.css">
+    <link rel="stylesheet" href="/static/css/tracker.css.css">
 {{end}}
 
 {{define "content"}}
+    {{if .Info}}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {{.Info}}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {{end}}
+    
     <!-- search results modal -->
     {{if and .PostData (ne (index .PostData "searchResults") nil)}}
         <div class="modal show fade d-block" id="searchResultsModal" tabindex="-1" aria-hidden="true">
@@ -45,7 +52,81 @@
             </div>
         </div>
     {{end}}
-    
+
+    <!-- search by date results modal -->
+    {{if and .PostData (ne (index .PostData "dateSearchResults") nil)}}
+        <div class="modal show fade d-block" id="searchResultsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">SEARCH RESULTS</h1>
+                        <a href="/tracker" class="btn-close" aria-label="Close" style="background-color: #fff;"></a>
+                    </div>                
+                    <div class="modal-body">
+                        <h3>"{{index .PostData "dateSearchResultsLength"}}" expenses found on {{index .PostData "dateSearchResultsDate"}}</h3>
+                        {{$dateSearchResults := index .PostData "dateSearchResults"}}
+                        {{range $result := $dateSearchResults}}
+                            <div class="expense-container">
+                                <div style="display: flex; flex-direction: row; gap: 10px;">
+                                    <small>{{$result.Date}} | {{$result.CreatedAt}}</small>
+                                    <small>
+                                        <form method="post">
+                                            <input type="hidden" name="deleteExpenseID" value="{{$result.ID}}">
+                                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </small>
+                                </div>
+                                <h4>{{$result.Name}}</h4>
+                                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$result.Amount}} | {{$result.Category}}</h3>
+                            </div>
+                        {{end}}
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-dark" href="/tracker">Close</a>
+                        <a class="btn btn-success" href="/tracker">OK</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{end}}
+
+    <!-- search by daterange results modal -->
+    {{if and .PostData (ne (index .PostData "dateRangeSearchResults") nil)}}
+        <div class="modal show fade d-block" id="searchResultsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5">SEARCH RESULTS</h1>
+                        <a href="/tracker" class="btn-close" aria-label="Close" style="background-color: #fff;"></a>
+                    </div>                
+                    <div class="modal-body">
+                        <h3>"{{index .PostData "dateRangeSearchResultsLength"}}" expenses found between {{index .PostData "dateRangeSearchResultsStart"}} and {{index .PostData "dateRangeSearchResultsEnd"}}</h3>
+                        {{$dateRangeSearchResults := index .PostData "dateRangeSearchResults"}}
+                        {{range $result := $dateRangeSearchResults}}
+                            <div class="expense-container">
+                                <div style="display: flex; flex-direction: row; gap: 10px;">
+                                    <small>{{$result.Date}} | {{$result.CreatedAt}}</small>
+                                    <small>
+                                        <form method="post">
+                                            <input type="hidden" name="deleteExpenseID" value="{{$result.ID}}">
+                                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </small>
+                                </div>
+                                <h4>{{$result.Name}}</h4>
+                                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$result.Amount}} | {{$result.Category}}</h3>
+                            </div>
+                        {{end}}
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-dark" href="/tracker">Close</a>
+                        <a class="btn btn-success" href="/tracker">OK</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{end}}
+
     <div class="categories">
         <h1>CATEGORIES</h1>
         <hr>
@@ -78,28 +159,6 @@
                         <input type="date" name="date" placeholder="Search by date" class="form-control">
                         <button type="submit" class="btn btn-primary" style="margin-top: 1%;">Search</button>
                     </form>
-                    {{if and .PostData (ne (index .PostData "dateSearchResults") nil)}}
-                        <hr>
-                        <h3>Search Results</h3>
-                        {{$dateSearchResults := index .PostData "dateSearchResults"}}
-                        <h3><a href="/tracker" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Back</a></h3>
-                        <h3>"{{index .PostData "dateSearchResultsLength"}}" results found</h3>
-                        {{range $result := $dateSearchResults}}                        
-                            <div class="expense-container" style="text-align: start;">                                
-                                <div style="display: flex; flex-direction: row; gap: 10px; background-color: inherit;">
-                                    <small>{{$result.Date}} | {{$result.CreatedAt}}</small>
-                                    <small>
-                                        <form method="post">
-                                            <input type="hidden" name="deleteExpenseID" value="{{$result.ID}}">
-                                            <button type="submit" class="delete-expense-btn"><i class="fa-solid fa-trash-can"></i></button>
-                                        </form>
-                                    </small>
-                                </div>
-                                <h4>{{$result.Name}}</h4>
-                                <h3><i class="fa-solid fa-indian-rupee-sign"></i>{{$result.Amount}} | {{$result.Category}}</h3>
-                            </div>
-                        {{end}}
-                    {{end}}
                 </div>
             </div>
 
@@ -113,6 +172,21 @@
     </div>
 
     <hr>
+
+    <div class="dateRangeSearch">
+        <h3>Search For Expenses In A Date Range</h3>
+        <form method="post">
+            <div class="row date-range-form-row">
+                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <input type="date" name="dateRangeStart" class="form-control" placeholder="Start Date">
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <input type="date" name="dateRangeEnd" class="form-control" placeholder="End Date">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 1%;">Search</button>
+            </div>
+        </form>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>

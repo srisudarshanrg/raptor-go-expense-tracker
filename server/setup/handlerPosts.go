@@ -12,8 +12,6 @@ import (
 	"github.com/srisudarshanrg/go-expense-tracker/server/validations"
 )
 
-var postData = map[string]interface{}{}
-
 // LoginPost is the handler for the post requests from the login page
 func LoginPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -122,11 +120,12 @@ func ExpensesPost(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, link, http.StatusSeeOther)
 	} else if searchKey != "" {
-		searchResults, err := functions.SearchExpense(strings.ToLower(searchKey))
+		searchResults, err := functions.SearchExpense(strings.ToLower(searchKey), user.ID)
 		if err != nil {
 			log.Println(err)
 		}
 
+		var postData = map[string]interface{}{}
 		postData["searchResults"] = searchResults
 		postData["searchResultsLength"] = len(searchResults)
 
@@ -168,6 +167,8 @@ func TrackerPost(w http.ResponseWriter, r *http.Request) {
 	searchExpenseKey := r.Form.Get("searchExpenseKey")
 	deleteExpenseID := r.Form.Get("deleteExpenseID")
 	date := r.Form.Get("date")
+	dateRangeStart := r.Form.Get("dateRangeStart")
+	dateRangeEnd := r.Form.Get("dateRangeEnd")
 
 	if category != "" {
 		categoryExpensesList, err := functions.GetExpensesByCategory(category, user.ID)
@@ -179,11 +180,12 @@ func TrackerPost(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/tracker-category", http.StatusSeeOther)
 	} else if searchExpenseKey != "" {
-		searchResults, err := functions.SearchExpense(searchExpenseKey)
+		searchResults, err := functions.SearchExpense(searchExpenseKey, user.ID)
 		if err != nil {
 			log.Println(err)
 		}
 
+		var postData = map[string]interface{}{}
 		postData["searchResults"] = searchResults
 		postData["searchResultsLength"] = len(searchResults)
 
@@ -214,11 +216,61 @@ func TrackerPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		newPostData := map[string]interface{}{}
+		if len(dateSearchResults) == 0 {
+			msg := "No expenses found on " + dateConvertedLayout
+			RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
+				Data: data,
+				Info: msg,
+			})
+
+			return
+		}
+
 		newPostData["dateSearchResults"] = dateSearchResults
 		newPostData["dateSearchResultsLength"] = len(dateSearchResults)
+		newPostData["dateSearchResultsDate"] = dateConvertedLayout
 		RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
 			Data:     data,
 			PostData: newPostData,
+		})
+	} else if dateRangeStart != "" && dateRangeEnd != "" {
+		dateRangeStartConverted, err := time.Parse("2006-01-02", dateRangeStart)
+		if err != nil {
+			log.Println(err)
+		}
+		dateRangeEndConverted, err := time.Parse("2006-01-02", dateRangeEnd)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println(dateRangeStartConverted)
+		log.Println(dateRangeEndConverted)
+
+		searchResults, err := functions.SearchExpensesByDateRange(dateRangeStartConverted, dateRangeEndConverted, user.ID)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println(searchResults)
+
+		if len(searchResults) == 0 {
+			msg := "No expenses found between " + dateRangeStart + " and " + dateRangeEnd
+			RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
+				Info: msg,
+				Data: data,
+			})
+			return
+		}
+
+		postData := map[string]interface{}{}
+		postData["dateRangeSearchResults"] = searchResults
+		postData["dateRangeSearchResultsLength"] = len(searchResults)
+		postData["dateRangeSearchResultsStart"] = dateRangeStart
+		postData["dateRangeSearchResultsEnd"] = dateRangeEnd
+
+		RenderTemplate(w, r, "tracker.page.tmpl", models.TemplateData{
+			Data:     data,
+			PostData: postData,
 		})
 	}
 }
