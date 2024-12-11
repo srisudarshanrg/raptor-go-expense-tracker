@@ -9,5 +9,177 @@
 {{end}}
 
 {{define "content"}}
+    <!-- add budget modal -->
+    <div class="modal fade" id="addBudgetModal" tabindex="-1" aria-labelledby="addBudgetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="addBudgetModalLabel">DEFINE BUDGET</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: #fff;"></button>
+                </div>
+                <form method="post" class="addBudgetForm">
+                    <div class="modal-body">
+                        <input type="text" name="budgetCategory" placeholder="Budget Category" class="form-control">
+                        <div class="form-text">The expenditure category for which you are setting a budget.</div>
+                        <input type="number" name="budgetAmount" placeholder="Amount" class="form-control">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Enter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- delete budget modal -->
+    <div class="modal fade" id="deleteBudgetModal" tabindex="-1" aria-labelledby="deleteBudgetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteBudgetModalLabel">DELETE BUDGET</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: #fff;"></button>
+                </div>
+                <form method="post" class="addBudgetForm">
+                    <div class="modal-body">
+                        <input type="text" name="budgetCategoryDelete" placeholder="Budget Category" class="form-control">
+                        <div class="form-text">The budget category you are deleting.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
+    <div class="budgets">
+        <h1>Track Your Budgets</h1>
+        <div class="btn-group">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBudgetModal"><i class="fa-solid fa-plus"></i> Add Budget</button>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBudgetModal"><i class="fa-solid fa-plus"></i> Delete Budget</button>
+        </div>
+        {{$budgets := index .Data "budgetList"}}
+        <div class="budget-row">
+            {{range $budget := $budgets}}
+                <div class="budget-container" style="background-color: {{$budget.Color}};">
+                    <h5 style="border-bottom: 1px solid #fff;">{{$budget.Category}}</h5>
+                    <h2><span class="budget-header" style="font-size: 1.5rem;">Budget:</span> <i class="fa-solid fa-indian-rupee-sign"></i>{{$budget.Amount}}</h2>
+                    <h2><span class="budget-header" style="font-size: 1.5rem;">Expenditure:</span> <i class="fa-solid fa-indian-rupee-sign"></i>{{$budget.Expenditure}}</h2>
+                    <h3 style="border-top: 1px solid #fff; background-color: #fff; color: #000;">Difference: <i class="fa-solid fa-indian-rupee-sign"></i>{{$budget.Difference}}</h3>
+                </div>
+            {{end}}
+        </div>
+    </div>
+
+    <hr>
+    <br>
+
+    <div class="graph-div">
+        <h2>Expenditure Against Budget</h2>
+        <canvas id="budgetAgainstExpense"></canvas>
+    </div>
+
+    <hr>
+
+    <div class="budget-report">
+        <h2 style="text-align: center;">Budget Report</h2>
+        <table class="table table-dark table-striped table-hover">
+            <thead>
+                <td>Category</td>
+                <td>Budget</td>
+                <td>Expenditure</td>
+                <td>Difference</td>
+            </thead>
+            {{range $budget := $budgets}}
+                <tr>
+                    <td>{{$budget.Category}}</td>
+                    <td><i class="fa-solid fa-indian-rupee-sign"></i> {{$budget.Amount}}</td>
+                    <td><i class="fa-solid fa-indian-rupee-sign"></i> {{$budget.Expenditure}}</td>
+                    <td><i class="fa-solid fa-indian-rupee-sign"></i> {{$budget.Difference}}</td>
+                </tr>
+            {{end}}
+            <td><h3>TOTAL</h3></td>
+            <td><h3><i class="fa-solid fa-indian-rupee-sign"></i> {{index .Data "totalBudget"}}</h3></td>
+            <td><h3><i class="fa-solid fa-indian-rupee-sign"></i> {{index .Data "totalExpenditure"}}</h3></td>
+            <td><h3><i class="fa-solid fa-indian-rupee-sign"></i> {{index .Data "totalDifference"}}</h3></td>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var labels = JSON.parse('{{index .Data "categoriesList"}}')
+        var expenditureData = JSON.parse('{{index .Data "expenditureAmount"}}')
+        var budgetData = JSON.parse('{{index .Data "budgetAmount"}}')
+
+        const ctx = document.getElementById('budgetAgainstExpense').getContext('2d');
+
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Budget',
+                    data: expenditureData,
+                    borderColor: '#ff1000',
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Expenditure',
+                    data: budgetData,
+                    borderColor: '#008000',
+                    borderWidth: 2,
+                },
+            ],
+        };
+
+        const options = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    enabled: true,
+                },
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: {
+                        color: "rgb(50, 50, 50)",
+                    },
+                    title: {
+                        display: true,
+                        text: "Category",
+                        color: "rgb(200, 200, 200)",
+                        font: {
+                            family: "'Work Sans', sans-serif",
+                        },
+                    },
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: "rgb(50, 50, 50)",
+                    },
+                    title: {
+                        display: true,
+                        text: "Budget Against Expense",
+                        color: "rgb(200, 200, 200)",
+                        font: {
+                            family: "'Work Sans', sans-serif",
+                        },
+                    },
+                },
+            },
+        };
+
+        const budgetAgainstExpenseChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: options,
+        });
+    </script>
 {{end}}

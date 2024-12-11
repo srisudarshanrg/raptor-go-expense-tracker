@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -452,16 +453,20 @@ func SearchExpensesByDateRange(startDate, endDate time.Time, userID int) ([]mode
 }
 
 // GetBudgets gets all the budgets defined by the user from the database
-func GetBudgets(userID int) ([]models.Budget, error) {
+func GetBudgets(userID int) ([]models.Budget, string, string, string, int, int, int, error) {
 	getBudgetQuery := `select * from budget where user_id=$1`
 	rows, err := db.Query(getBudgetQuery, userID)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, "", "", "", 0, 0, 0, err
 	}
 	defer rows.Close()
 
 	var budgetList []models.Budget
+	var categoriesList []string
+	var budgetAmount []int
+	var expenditureAmount []int
+
 	for rows.Next() {
 		var id, amount, userID int
 		var category string
@@ -470,20 +475,124 @@ func GetBudgets(userID int) ([]models.Budget, error) {
 		err = rows.Scan(&id, &category, &amount, &userID, &createdAt, &updatedAt)
 		if err != nil {
 			log.Println(err)
-			return nil, err
+			return nil, "", "", "", 0, 0, 0, err
+		}
+
+		getTotalExpenditureQuery := `select category, amount from expenses where category=$1 and user_id=$2`
+		rowsExpenditure, err := db.Query(getTotalExpenditureQuery, category, userID)
+		if err != nil {
+			log.Println(err)
+			return nil, "", "", "", 0, 0, 0, err
+		}
+
+		totalAmount := 0
+		for rowsExpenditure.Next() {
+			var expenditureAmount int
+			var expenditureCategory string
+
+			err = rowsExpenditure.Scan(&expenditureCategory, &expenditureAmount)
+			if err != nil {
+				log.Println(err)
+				return nil, "", "", "", 0, 0, 0, err
+			}
+			totalAmount += expenditureAmount
+			if !slices.Contains(categoriesList, expenditureCategory) {
+				categoriesList = append(categoriesList, expenditureCategory)
+			}
+		}
+		expenditureAmount = append(expenditureAmount, totalAmount)
+		budgetAmount = append(budgetAmount, amount)
+
+		difference := totalAmount - amount
+
+		var color string
+		if difference <= 0 {
+			color = "#198754"
+		} else {
+			color = "#dc3545"
 		}
 
 		budget := models.Budget{
-			ID:        id,
-			Category:  category,
-			Amount:    amount,
-			UserID:    userID,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
+			ID:          id,
+			Category:    category,
+			Amount:      amount,
+			Expenditure: totalAmount,
+			Difference:  amount - totalAmount,
+			Color:       color,
+			UserID:      userID,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
 		}
 
 		budgetList = append(budgetList, budget)
 	}
 
-	return budgetList, nil
+	totalExpenditure := 0
+	totalBudget := 0
+
+	for _, i := range expenditureAmount {
+		totalExpenditure += i
+	}
+
+	for _, i := range budgetAmount {
+		totalBudget += i
+	}
+
+	categoriesListJSON, _ := json.Marshal(categoriesList)
+	expenditureAmountJSON, _ := json.Marshal(expenditureAmount)
+	budgetAmountJSON, _ := json.Marshal(budgetAmount)
+
+	categoriesListConverted := string(categoriesListJSON)
+	expenditureAmountConverted := string(expenditureAmountJSON)
+	budgetAmountConverted := string(budgetAmountJSON)
+
+	return budgetList, categoriesListConverted, expenditureAmountConverted, budgetAmountConverted, totalExpenditure, totalBudget, totalBudget - totalExpenditure, nil
+}
+
+// AddBudget adds a budget to the database
+func AddBudget(category string, amount int, userID int) error {
+	categoryUpper := strings.ToUpper(category)
+	alreadyExistsQuery := `select * from budget where category=$1 and user_id=$2`
+	result, err := db.Exec(alreadyExistsQuery, categoryUpper, userID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	if affected > 0 {
+		updateBudgetQuery := `update budget set amount=$1, updated_at=$2 where category=$3 and user_id=$4`
+		_, err = db.Exec(updateBudgetQuery, amount, time.Now(), categoryUpper, userID)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		return nil
+	}
+
+	createBudgetQuery := `insert into budget(category, amount, user_id, created_at, updated_at) values($1, $2, $3, $4, $5)`
+	_, err = db.Exec(createBudgetQuery, categoryUpper, amount, userID, time.Now(), time.Now())
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+// DeleteBudget deletes a budget from the database
+func DeleteBudget(category string, userID int) error {
+	categoryConverted := strings.ToUpper(category)
+	deleteBudgetQuery := `delete from budget where category=$1 and user_id=$2`
+	_, err := db.Exec(deleteBudgetQuery, categoryConverted, userID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }

@@ -271,12 +271,18 @@ func Budget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budgetList, err := functions.GetBudgets(user.ID)
+	budgetList, categoriesList, expenditureAmount, budgetAmount, totalExpenditure, totalBudget, totalDifference, err := functions.GetBudgets(user.ID)
 	if err != nil {
 		log.Println(err)
 	}
 
 	data["budgetList"] = budgetList
+	data["categoriesList"] = categoriesList
+	data["expenditureAmount"] = expenditureAmount
+	data["budgetAmount"] = budgetAmount
+	data["totalExpenditure"] = totalExpenditure
+	data["totalBudget"] = totalBudget
+	data["totalDifference"] = totalDifference
 
 	err = RenderTemplate(w, r, "budget.page.tmpl", models.TemplateData{
 		Data: data,

@@ -101,3 +101,33 @@ body {
     margin-right: auto;
     margin-top: 1%;
 }
+
+@media (min-width: 769px) {
+    .category-rows {
+        grid-template-columns: auto auto auto auto;
+    }
+
+    .category {
+        height: 10vh;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 768px) {
+    .category-rows {
+        grid-template-columns: auto auto auto;
+    }
+
+    .category {
+        height: 10vh;
+    }
+}
+
+@media (max-width: 576px) {
+    .category-rows {
+        grid-template-columns: auto;
+    }
+
+    .category {
+        height: 10vh;
+    }
+}

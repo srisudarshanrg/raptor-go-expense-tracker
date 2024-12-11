@@ -34,12 +34,15 @@ type ExpenseCategory struct {
 
 // Budget is the model object for a budget from the database
 type Budget struct {
-	ID        int
-	Category  string
-	Amount    int
-	UserID    int
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          int
+	Category    string
+	Amount      int
+	Expenditure int
+	Difference  int
+	Color       string
+	UserID      int
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 // Colors is the model object for a category color from the database

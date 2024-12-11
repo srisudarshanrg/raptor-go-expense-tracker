@@ -22,3 +22,7 @@ body {
     transition: 0.3s;
     cursor: pointer;    
 }
+
+#searchExpenseForm {
+    display: none;
+}

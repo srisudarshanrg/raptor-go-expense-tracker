@@ -297,3 +297,42 @@ func TrackerCategoryPost(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/tracker-category", http.StatusSeeOther)
 	}
 }
+
+// BudgetPost is the handler for the post requests from the budget page
+func BudgetPost(w http.ResponseWriter, r *http.Request) {
+	userInterface := session.Get(r.Context(), "loggedUser")
+	user, check := userInterface.(models.User)
+	if !check {
+		log.Println("user not in session", user, check)
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
+
+	budgetCategory := r.Form.Get("budgetCategory")
+	budgetCategoryDelete := r.Form.Get("budgetCategoryDelete")
+
+	if budgetCategory != "" {
+		budgetAmount := r.Form.Get("budgetAmount")
+		budgetAmountConverted, err := strconv.Atoi(budgetAmount)
+		if err != nil {
+			log.Println(err)
+		}
+
+		err = functions.AddBudget(budgetCategory, budgetAmountConverted, user.ID)
+		if err != nil {
+			log.Println(err)
+		}
+
+		http.Redirect(w, r, "/budget", http.StatusSeeOther)
+	} else if budgetCategoryDelete != "" {
+		err = functions.DeleteBudget(budgetCategoryDelete, user.ID)
+		if err != nil {
+			log.Println(err)
+		}
+		http.Redirect(w, r, "/budget", http.StatusSeeOther)
+	}
+}
