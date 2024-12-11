@@ -56,6 +56,7 @@ func CreateNewUser(username string, email string, password string) (models.User,
 	return completeUser, err
 }
 
+// AuthenticateUser authenticates a user before logging them in
 func AuthenticateUser(credential string, passwordInput string) (bool, models.User, string, error) {
 	getUserQuery := `select * from users where username=$1 or email=$1`
 	result, err := db.Exec(getUserQuery, credential)
