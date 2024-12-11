@@ -243,15 +243,10 @@ func TrackerPost(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 		}
 
-		log.Println(dateRangeStartConverted)
-		log.Println(dateRangeEndConverted)
-
 		searchResults, err := functions.SearchExpensesByDateRange(dateRangeStartConverted, dateRangeEndConverted, user.ID)
 		if err != nil {
 			log.Println(err)
 		}
-
-		log.Println(searchResults)
 
 		if len(searchResults) == 0 {
 			msg := "No expenses found between " + dateRangeStart + " and " + dateRangeEnd
