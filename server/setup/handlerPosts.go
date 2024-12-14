@@ -68,6 +68,7 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 			Data: errorList,
 		})
 		log.Println("validation problem")
+		errorList = nil
 		return
 	}
 
