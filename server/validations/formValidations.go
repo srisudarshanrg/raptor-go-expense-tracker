@@ -1,18 +1,26 @@
 package validations
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"strconv"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/asaskevich/govalidator"
 )
 
 var errorList []string
 var db *sql.DB
+var session *scs.SessionManager
 
 func DBAccessFormValidations(dbAccess *sql.DB) {
 	db = dbAccess
+}
+
+// SessionAccessValidations provides the validations package with access to the sessions
+func SessionAccessValidations(sessionAccess *scs.SessionManager) {
+	session = sessionAccess
 }
 
 // Length validates if the input has more characters than the minimum length or not
@@ -87,6 +95,7 @@ func EmailExists(email string) {
 }
 
 // GetErrorList passes the error list to the final validation
-func GetErrorList() []string {
-	return errorList
+func PutErrorListInSession(ctx context.Context) {
+	session.Put(ctx, "errorList", errorList)
+	errorList = nil
 }

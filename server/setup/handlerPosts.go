@@ -51,7 +51,7 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	username := r.Form.Get("username")
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
-	passwordConfirm := r.Form.Get("passwordConfirm")
+	passwordConfirm := r.Form.Get("confirmPassword")
 
 	// form validations
 	validations.MaxLength(username, 30)
@@ -61,14 +61,16 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	validations.UsernameExists(username)
 	validations.EmailExists(email)
 
-	// get error list
-	errorList := validations.GetErrorList()
+	// put error list in session
+	validations.PutErrorListInSession(r.Context())
+
+	errorList := session.Get(r.Context(), "errorList").([]string)
 	if len(errorList) > 0 {
 		RenderTemplate(w, r, "register.page.tmpl", models.TemplateData{
 			Data: errorList,
 		})
 		log.Println("validation problem")
-		errorList = nil
+		session.Remove(r.Context(), "errorList")
 		return
 	}
 
