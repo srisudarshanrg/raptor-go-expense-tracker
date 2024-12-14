@@ -74,14 +74,20 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("user created")
-
-	// create user
-	user, err := functions.CreateNewUser(username, email, password)
+	passwordHash, err := functions.HashPassword(password)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
+	// create user
+	user, err := functions.CreateNewUser(username, email, passwordHash)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	log.Println("user created")
 
 	// passing user to session
 	session.Put(r.Context(), "loggedUser", user)
