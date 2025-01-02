@@ -401,5 +401,4 @@ FodyWeavers.xsd
 .idea
 
 # custom
-driver.go
 database.yml
