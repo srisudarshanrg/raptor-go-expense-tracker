@@ -62,16 +62,20 @@ func RegisterPost(w http.ResponseWriter, r *http.Request) {
 	validations.EmailExists(email)
 
 	// put error list in session
-	validations.PutErrorListInSession(r.Context())
+	errorList := session.Get(r.Context(), "errorList")
 
-	errorList := session.Get(r.Context(), "errorList").([]string)
-	if len(errorList) > 0 {
-		RenderTemplate(w, r, "register.page.tmpl", models.TemplateData{
-			Data: errorList,
-		})
-		log.Println("validation problem")
-		session.Remove(r.Context(), "errorList")
-		return
+	if errorList == nil {
+		log.Println("errorList key value is nil")
+	} else {
+		errorListCheck := session.Get(r.Context(), "errorList").([]string)
+		if len(errorListCheck) > 0 {
+			RenderTemplate(w, r, "register.page.tmpl", models.TemplateData{
+				Data: errorList,
+			})
+			log.Println("validation problem")
+			session.Remove(r.Context(), "errorList")
+			return
+		}
 	}
 
 	passwordHash, err := functions.HashPassword(password)

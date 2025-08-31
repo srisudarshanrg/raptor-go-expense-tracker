@@ -95,7 +95,7 @@ func EmailExists(email string) {
 }
 
 // GetErrorList passes the error list to the final validation
-func PutErrorListInSession(ctx context.Context) {
+func ReturnErrorList(ctx context.Context) {
 	session.Put(ctx, "errorList", errorList)
 	errorList = nil
 }
